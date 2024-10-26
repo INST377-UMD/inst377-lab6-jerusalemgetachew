@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet Map Lab</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .marker-details {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Leaflet Map of us</h1>
+    <div id="map"></div>
+    <div>
+        <p class="marker-details">Marker 1: Latitude: <span id="marker1-lat"></span>, Longitude: <span id="marker1-lng"></span></p>
+        <p>Locality: <span id="marker1-locality"></span></p>
+        <p class="marker-details">Marker 2: Latitude: <span id="marker2-lat"></span>, Longitude: <span id="marker2-lng"></span></p>
+        <p>Locality: <span id="marker2-locality"></span></p>
+        <p class="marker-details">Marker 3: Latitude: <span id="marker3-lat"></span>, Longitude: <span id="marker3-lng"></span></p>
+        <p>Locality: <span id="marker3-locality"></span></p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map centered on the US
+        const map = L.map('map').setView([37.0902, -95.7129], 4);
+
+        // Add a tile layer to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Function to generate random coordinates
+        function getRandomInRange(from, to, fixed) {
+            return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
+        }
+
+        // Generate random coordinates for 3 markers
+        const coordinates = [
+            { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) },
+            { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) },
+            { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) }
+        ];
+
+        // Function to set up markers and get locality data
+        coordinates.forEach((coord, index) => {
+            const marker = L.marker([coord.lat, coord.lng]).addTo(map);
+            document.getElementById(`marker${index + 1}-lat`).textContent = coord.lat;
+            document.getElementById(`marker${index + 1}-lng`).textContent = coord.lng;
+
+            // Fetch locality data from the API
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${coord.lat}&longitude=${coord.lng}&localityLanguage=en`)
+                .then(response => response.json())
+                .then(data => {
+                    const locality = data.locality || "Locality not found";
+                    document.getElementById(`marker${index + 1}-locality`).textContent = locality;
+                })
+                .catch(error => {
+                    console.error('Error fetching locality:', error);
+                    document.getElementById(`marker${index + 1}-locality`).textContent = "Error fetching locality";
+                });
+        });
+    </script>
+</body>
+</html>
+
+
